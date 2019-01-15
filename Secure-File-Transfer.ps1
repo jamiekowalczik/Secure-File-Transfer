@@ -170,6 +170,7 @@ Function Put-Files{
       }
       "scp" {
          $sessionOptions.Protocol = [WinSCP.Protocol]::Scp
+         Write-Host "using scp"
          break
       }
       default {
