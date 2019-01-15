@@ -56,81 +56,80 @@ Function Invoke-SecureFileTransfer{
       # If set to True then debugging information will be displayed to the user
       [Bool]$DebugFunction = $false
    )
-  
-   If($DebugFunction){
-      $CommandName = $PSCmdlet.MyInvocation.InvocationName;
-      # Get the list of parameters for the command
-      $ParameterList = (Get-Command -Name $CommandName).Parameters;
-      $now = Get-Date; Write-Host "`n$($MyInvocation.MyCommand.Name):: started $now"
-      # Grab each parameter value, using Get-Variable
-	  $FunctionVariables = ""
-      foreach ($Parameter in $ParameterList) {
-         $FunctionVariables = Get-Variable -Name $Parameter.Values.Name -ErrorAction SilentlyContinue | Out-String
-      }
-	 Write-Host "$FunctionVariables"
-   }
 
-   # Configure the sessions options.  
-   $sessionOptions = New-Object WinSCP.SessionOptions
+   Try{  
+      If($DebugFunction){
+         $CommandName = $PSCmdlet.MyInvocation.InvocationName;
+         # Get the list of parameters for the command
+         $ParameterList = (Get-Command -Name $CommandName).Parameters;
+         $now = Get-Date; Write-Host "`n$($MyInvocation.MyCommand.Name):: started $now"
+         # Grab each parameter value, using Get-Variable
+	 $FunctionVariables = ""
+         foreach ($Parameter in $ParameterList) {
+            $FunctionVariables = Get-Variable -Name $Parameter.Values.Name -ErrorAction SilentlyContinue | Out-String
+         }
+   	    Write-Host "$FunctionVariables"
+      }
 
-   # If a transfer method is not specified then default to SFTP.
-   switch ($Method) {
-      "sftp" {
-         $sessionOptions.Protocol = [WinSCP.Protocol]::Sftp
-         break
+      # Configure the sessions options.  
+      $sessionOptions = New-Object WinSCP.SessionOptions
+
+      # If a transfer method is not specified then default to SFTP.
+      switch ($Method) {
+         "sftp" {
+            $sessionOptions.Protocol = [WinSCP.Protocol]::Sftp
+            break
+         }
+         "scp" {
+            $sessionOptions.Protocol = [WinSCP.Protocol]::Scp
+            break
+         }
+         default {
+            $sessionOptions.Protocol = [WinSCP.Protocol]::Sftp
+            break
+         }
       }
-      "scp" {
-         $sessionOptions.Protocol = [WinSCP.Protocol]::Scp
-         break
-      }
-      default {
-         $sessionOptions.Protocol = [WinSCP.Protocol]::Sftp
-         break
-      }
-   }
    
-   # If a fingerprint is not specified then turn of hostkey checking
-   If($Fingerprint -eq ""){ $sessionOptions.GiveUpSecurityAndAcceptAnySshHostKey = $true } Else { $sessionOptions.SshHostKeyFingerprint = $Fingerprint }
+      # If a fingerprint is not specified then turn of hostkey checking
+      If($Fingerprint -eq ""){ $sessionOptions.GiveUpSecurityAndAcceptAnySshHostKey = $true } Else { $sessionOptions.SshHostKeyFingerprint = $Fingerprint }
 
-   $sessionOptions.HostName = $Hostname
-   $sessionOptions.UserName = $Username
-   $sessionOptions.Password = $Password
+      $sessionOptions.HostName = $Hostname
+      $sessionOptions.UserName = $Username
+      $sessionOptions.Password = $Password
    
-   $session = New-Object WinSCP.Session
-   $session.Open($sessionOptions)
+      $session = New-Object WinSCP.Session
+      $session.Open($sessionOptions)
 
-   $transferOptions = New-Object WinSCP.TransferOptions
-   $transferOptions.TransferMode = [WinSCP.TransferMode]::Binary
+      $transferOptions = New-Object WinSCP.TransferOptions
+      $transferOptions.TransferMode = [WinSCP.TransferMode]::Binary
 
-   # Determine whether to put or get
-   switch ($Direction) {
-      "put" {
-         $transferResult = $session.PutFiles($Source, $Destination, $False, $transferOptions)
-         break
+      # Determine whether to put or get
+      switch ($Direction) {
+         "put" {
+            $transferResult = $session.PutFiles($Source, $Destination, $False, $transferOptions)
+            break
+         }
+         "get" {
+            $transferResult = $session.GetFiles($Source, $Destination, $False, $transferOptions)
+            break
+         }
+         default {
+            Write-Host "Invalid direction specified.  Please use PUT or GET"
+            Exit 1
+            break
+         }
       }
-      "get" {
-         $transferResult = $session.GetFiles($Source, $Destination, $False, $transferOptions)
-         break
-      }
-      default {
-         Write-Host "Invalid direction specified.  Please use PUT or GET"
-         Exit 1
-         break
-      }
+
+      $transferResult.Check()
+
+      $session.Dispose()
+
+      Return $transferResult
+   }Catch{
+      Write-Host $_.Exception.Message
    }
- 
-   $transferResult.Check()
-
-   $session.Dispose()
-
-   Return $transferResult
 }
 
 ######## END OF FUNCTIONS ########
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
-##$global:SecureFileTransferSessions = @{}
-
-Export-ModuleMember Invoke-SecureFileTransfer
+Export-ModuleMember -Function Invoke-SecureFileTransfer
