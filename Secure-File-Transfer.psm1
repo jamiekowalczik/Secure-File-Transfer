@@ -1,16 +1,14 @@
-Param(
-   [String]$PreReqModuleFile = ".\Modules\winscp556automation\WinSCPnet.dll",
-   [Bool]$DebugScript = $false
-)
+<#
+.SYNOPSIS
+A set of functions for dealing with SFTP/SCP connections from PowerShell, using the WinSCPnet
+library found here on: http://winscp.net/eng/docs/library_install
 
-Try{
-   Add-Type -Path $PreReqModuleFile
-}Catch{
-   Write-Host $_.Exception.Message
-   Write-Host $_.Exception.ItemName
-   Write-Host "The module can be downloaded from: http://winscp.net/eng/docs/library_install"
-   Exit 1
-}
+Author: Jamie Kowalczik
+
+.DESCRIPTION
+See:
+Get-Help Invoke-SecureFileTransfer
+#>
 
 <#
    .SYNOPSIS
@@ -21,10 +19,10 @@ Try{
       Optionally you can specify a server's fingerprint to be verified prior to sending files.
 
    .EXAMPLE
-      Secure-File-Transfer -Hostname "fileserver" -Username "usera" -Password "passworda" -Direction "put" -Source "C:\data\*" -Destination "/upload/data/"
+      Invoke-SecureFileTransfer -Hostname "fileserver" -Username "usera" -Password "passworda" -Direction "put" -Source "C:\data\*" -Destination "/upload/data/"
 
    .EXAMPLE
-      Secure-File-Transfer -Hostname "fileserver" -Username "usera" -Password "passworda" -Direction "put" -Method "SCP" -Fingerprint "rsa-2048 xxxxxxxxxxxx" -Source "C:\data\*" -Destination "/upload/data/"
+      Invoke-SecureFileTransfer -Hostname "fileserver" -Username "usera" -Password "passworda" -Direction "put" -Method "SCP" -Fingerprint "rsa-2048 xxxxxxxxxxxx" -Source "C:\data\*" -Destination "/upload/data/"
 
    .NOTES
       For this function to work you must reference the WinSCP Library.  The function will send files using sftp or scp, defaulting to sftp.  
@@ -33,7 +31,10 @@ Try{
    .LINK
       http://winscp.net/eng/docs/library_install
 #>
-Function Secure-File-Transfer{
+
+$DebugScript = $false
+
+Function Invoke-SecureFileTransfer{
    [CmdletBinding()]
    Param(
       # The remote server's IP address or FQDN
@@ -51,10 +52,12 @@ Function Secure-File-Transfer{
       # The source file or directory for the transfer
       [Parameter(Mandatory=$true)][String]$Source,
       # The destination file or directory for the transfer
-      [Parameter(Mandatory=$true)][String]$Destination
+      [Parameter(Mandatory=$true)][String]$Destination,
+      # If set to True then debugging information will be displayed to the user
+      [Bool]$DebugFunction = $false
    )
   
-   If($DebugScript){
+   If($DebugFunction){
       $CommandName = $PSCmdlet.MyInvocation.InvocationName;
       # Get the list of parameters for the command
       $ParameterList = (Get-Command -Name $CommandName).Parameters;
@@ -122,3 +125,12 @@ Function Secure-File-Transfer{
 
    Return $transferResult
 }
+
+######## END OF FUNCTIONS ########
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+##$global:SecureFileTransferSessions = @{}
+
+Export-ModuleMember Invoke-SecureFileTransfer
