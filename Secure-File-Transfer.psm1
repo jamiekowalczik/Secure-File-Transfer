@@ -32,8 +32,6 @@ Get-Help Invoke-SecureFileTransfer
       http://winscp.net/eng/docs/library_install
 #>
 
-$DebugScript = $false
-
 Function Invoke-SecureFileTransfer{
    [CmdletBinding()]
    Param(
