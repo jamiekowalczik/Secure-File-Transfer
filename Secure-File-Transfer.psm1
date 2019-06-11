@@ -56,7 +56,7 @@ Function Invoke-SecureFileTransfer{
       [Parameter(Mandatory=$true)][String]$Source,
       # The destination file or directory for the transfer
       [Parameter(Mandatory=$true)][String]$Destination,
-	  # Remove the source file after transfer
+      # Remove the source file after transfer
       [Parameter(Mandatory=$false)][Bool]$Removal = $false,
       # If set to True then debugging information will be displayed to the user
       [Bool]$DebugFunction = $false
@@ -101,7 +101,7 @@ Function Invoke-SecureFileTransfer{
       $sessionOptions.HostName = $Hostname
       $sessionOptions.UserName = $Username
       $sessionOptions.Password = $Password
-	  $sessionOptions.SshPrivateKeyPath = $SshPrivateKeyPath
+      $sessionOptions.SshPrivateKeyPath = $SshPrivateKeyPath
 
    
       $session = New-Object WinSCP.Session
