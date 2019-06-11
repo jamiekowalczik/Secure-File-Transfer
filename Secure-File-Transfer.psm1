@@ -23,6 +23,9 @@ Get-Help Invoke-SecureFileTransfer
 
    .EXAMPLE
       Invoke-SecureFileTransfer -Hostname "fileserver" -Username "usera" -Password "passworda" -Direction "put" -Method "SCP" -Fingerprint "rsa-2048 xxxxxxxxxxxx" -Source "C:\data\*" -Destination "/upload/data/"
+ 
+   .EXAMPLE
+      Invoke-SecureFileTransfer -Hostname "fileserver" -Username "usera" -SshPrivateKeyPath "C:\privatekey.ppk" -Direction "put" -Method "SCP" -Fingerprint "rsa-2048 xxxxxxxxxxxx" -Source "C:\data\*" -Destination "/upload/data/"
 
    .NOTES
       For this function to work you must reference the WinSCP Library.  The function will send files using sftp or scp, defaulting to sftp.  
@@ -40,7 +43,9 @@ Function Invoke-SecureFileTransfer{
       # The username to login to the remote server with
       [Parameter(Mandatory=$true)][String]$Username,
       # The password to login to the remote server
-      [Parameter(Mandatory=$true)][String]$Password,
+      [Parameter(Mandatory=$false)][String]$Password,
+	  # The private key to login to the remote server
+      [Parameter(Mandatory=$false)][String]$SshPrivateKeyPath,
       # The direction for the file transfer - GET or PUT
       [Parameter(Mandatory=$true)][String]$Direction = "",
       # The protocol to use for file transfer - SFTP or SCP
@@ -94,6 +99,8 @@ Function Invoke-SecureFileTransfer{
       $sessionOptions.HostName = $Hostname
       $sessionOptions.UserName = $Username
       $sessionOptions.Password = $Password
+	  $sessionOptions.SshPrivateKeyPath = $SshPrivateKeyPath
+
    
       $session = New-Object WinSCP.Session
       $session.Open($sessionOptions)
