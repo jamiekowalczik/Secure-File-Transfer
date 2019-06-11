@@ -1,140 +1,87 @@
-<#
-.SYNOPSIS
-A set of functions for dealing with SFTP/SCP connections from PowerShell, using the WinSCPnet
-library found here on: http://winscp.net/eng/docs/library_install
+# Module manifest for module 'Secure-File-Transfer.psm1'
+#
+# Created by: Jamie Kowalczik
+#
+# Created on: 2019-01-15
+#
+@{
 
-Author: Jamie Kowalczik
+# Script module or binary module file associated with this manifest
+ModuleToProcess = 'Secure-File-Transfer.psm1'
 
-.DESCRIPTION
-See:
-Get-Help Invoke-SecureFileTransfer
-#>
+# Version number of this module.
+ModuleVersion = '1.0.0.0'
 
-<#
-   .SYNOPSIS
-      This will securely get or retrieve files using the sftp or scp protocol.
+# ID used to uniquely identify this module
+GUID = ''
 
-   .DESCRIPTION
-      This function will securely retrieve files using the sftp or scp protocol.  
-      Optionally you can specify a server's fingerprint to be verified prior to sending files.
+# Author of this module
+Author = 'Jamie Kowalczik'
 
-   .EXAMPLE
-      Invoke-SecureFileTransfer -Hostname "fileserver" -Username "usera" -Password "passworda" -Direction "put" -Source "C:\data\*" -Destination "/upload/data/"
+# Company or vendor of this module
+CompanyName = ''
 
-   .EXAMPLE
-      Invoke-SecureFileTransfer -Hostname "fileserver" -Username "usera" -Password "passworda" -Direction "put" -Method "SCP" -Fingerprint "rsa-2048 xxxxxxxxxxxx" -Source "C:\data\*" -Destination "/upload/data/"
- 
-   .EXAMPLE
-      Invoke-SecureFileTransfer -Hostname "fileserver" -Username "usera" -SshPrivateKeyPath "C:\privatekey.ppk" -Direction "put" -Method "SCP" -Fingerprint "rsa-2048 xxxxxxxxxxxx" -Source "C:\data\*" -Destination "/upload/data/"
+# Copyright statement for this module
+Copyright = ''
 
-   .NOTES
-      For this function to work you must reference the WinSCP Library.  The function will send files using sftp or scp, defaulting to sftp.  
-      Supplying a server's fingerprint is optional.
+# Description of the functionality provided by this module
+Description = 'Provides SFTP/SCP session creation, management and interaction from PowerShell.'
 
-   .LINK
-      http://winscp.net/eng/docs/library_install
-#>
+# Minimum version of the Windows PowerShell engine required by this module
+PowerShellVersion = '2.0'
 
-Function Invoke-SecureFileTransfer{
-   [CmdletBinding()]
-   Param(
-      # The remote server's IP address or FQDN
-      [Parameter(Mandatory=$true)][String]$Hostname,
-      # The username to login to the remote server with
-      [Parameter(Mandatory=$true)][String]$Username,
-      # The password to login to the remote server
-      [Parameter(Mandatory=$false)][String]$Password,
-	  # The private key to login to the remote server
-      [Parameter(Mandatory=$false)][String]$SshPrivateKeyPath,
-      # The direction for the file transfer - GET or PUT
-      [Parameter(Mandatory=$true)][String]$Direction = "",
-      # The protocol to use for file transfer - SFTP or SCP
-      [String]$Method = "SFTP",
-      # The remote server's fingerprint.  This paramter is optional
-      [String]$Fingerprint,
-      # The source file or directory for the transfer
-      [Parameter(Mandatory=$true)][String]$Source,
-      # The destination file or directory for the transfer
-      [Parameter(Mandatory=$true)][String]$Destination,
-      # If set to True then debugging information will be displayed to the user
-      [Bool]$DebugFunction = $false
-   )
+# Name of the Windows PowerShell host required by this module
+PowerShellHostName = ''
 
-   Try{  
-      If($DebugFunction){
-         $CommandName = $PSCmdlet.MyInvocation.InvocationName;
-         # Get the list of parameters for the command
-         $ParameterList = (Get-Command -Name $CommandName).Parameters;
-         $now = Get-Date; Write-Host "`n$($MyInvocation.MyCommand.Name):: started $now"
-         # Grab each parameter value, using Get-Variable
-	 $FunctionVariables = ""
-         foreach ($Parameter in $ParameterList) {
-            $FunctionVariables = Get-Variable -Name $Parameter.Values.Name -ErrorAction SilentlyContinue | Out-String
-         }
-   	    Write-Host "$FunctionVariables"
-      }
+# Minimum version of the Windows PowerShell host required by this module
+PowerShellHostVersion = ''
 
-      # Configure the sessions options.  
-      $sessionOptions = New-Object WinSCP.SessionOptions
+# Minimum version of the .NET Framework required by this module
+DotNetFrameworkVersion = '4.0'
 
-      # If a transfer method is not specified then default to SFTP.
-      switch ($Method) {
-         "sftp" {
-            $sessionOptions.Protocol = [WinSCP.Protocol]::Sftp
-            break
-         }
-         "scp" {
-            $sessionOptions.Protocol = [WinSCP.Protocol]::Scp
-            break
-         }
-         default {
-            $sessionOptions.Protocol = [WinSCP.Protocol]::Sftp
-            break
-         }
-      }
-   
-      # If a fingerprint is not specified then turn of hostkey checking
-      If($Fingerprint -eq ""){ $sessionOptions.GiveUpSecurityAndAcceptAnySshHostKey = $true } Else { $sessionOptions.SshHostKeyFingerprint = $Fingerprint }
+# Minimum version of the common language runtime (CLR) required by this module
+CLRVersion = ''
 
-      $sessionOptions.HostName = $Hostname
-      $sessionOptions.UserName = $Username
-      $sessionOptions.Password = $Password
-	  $sessionOptions.SshPrivateKeyPath=$SshPrivateKeyPath
+# Processor architecture (None, X86, Amd64, IA64) required by this module
+ProcessorArchitecture = ''
 
-   
-      $session = New-Object WinSCP.Session
-      $session.Open($sessionOptions)
+# Modules that must be imported into the global environment prior to importing this module
+RequiredModules = @()
 
-      $transferOptions = New-Object WinSCP.TransferOptions
-      $transferOptions.TransferMode = [WinSCP.TransferMode]::Binary
+# Assemblies that must be loaded prior to importing this module
+RequiredAssemblies = @('WinSCPnet.dll')
 
-      # Determine whether to put or get
-      switch ($Direction) {
-         "put" {
-            $transferResult = $session.PutFiles($Source, $Destination, $False, $transferOptions)
-            break
-         }
-         "get" {
-            $transferResult = $session.GetFiles($Source, $Destination, $False, $transferOptions)
-            break
-         }
-         default {
-            Write-Host "Invalid direction specified.  Please use PUT or GET"
-            Exit 1
-            break
-         }
-      }
+# Script files (.ps1) that are run in the caller's environment prior to importing this module
+ScriptsToProcess = @()
 
-      $transferResult.Check()
+# Type files (.ps1xml) to be loaded when importing this module
+TypesToProcess = @()
 
-      $session.Dispose()
+# Format files (.ps1xml) to be loaded when importing this module
+FormatsToProcess = @()
 
-      Return $transferResult
-   }Catch{
-      Write-Host $_.Exception.Message
-   }
+# Modules to import as nested modules of the module specified in ModuleToProcess
+NestedModules = @()
+
+# Functions to export from this module
+FunctionsToExport = '*'
+
+# Cmdlets to export from this module
+CmdletsToExport = '*'
+
+# Variables to export from this module
+VariablesToExport = '*'
+
+# Aliases to export from this module
+AliasesToExport = '*'
+
+# List of all modules packaged with this module
+ModuleList = @()
+
+# List of all files packaged with this module
+FileList = @('WinSCPnet.dll', 'Secure-File-Transfer.psm1', 'Secure-File-Transfer.psd1')
+
+# Private data to pass to the module specified in ModuleToProcess
+PrivateData = ''
+
 }
-
-######## END OF FUNCTIONS ########
-
-Export-ModuleMember -Function Invoke-SecureFileTransfer
