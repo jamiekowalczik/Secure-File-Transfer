@@ -44,7 +44,7 @@ Function Invoke-SecureFileTransfer{
       [Parameter(Mandatory=$true)][String]$Username,
       # The password to login to the remote server
       [Parameter(Mandatory=$false)][String]$Password,
-	  # The private key to login to the remote server
+      # The private key to login to the remote server
       [Parameter(Mandatory=$false)][String]$SshPrivateKeyPath,
       # The direction for the file transfer - GET or PUT
       [Parameter(Mandatory=$true)][String]$Direction = "",
