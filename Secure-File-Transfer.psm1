@@ -56,6 +56,8 @@ Function Invoke-SecureFileTransfer{
       [Parameter(Mandatory=$true)][String]$Source,
       # The destination file or directory for the transfer
       [Parameter(Mandatory=$true)][String]$Destination,
+	  # Remove the source file after transfer
+      [Parameter(Mandatory=$false)][Bool]$Removal = $false,
       # If set to True then debugging information will be displayed to the user
       [Bool]$DebugFunction = $false
    )
@@ -111,11 +113,11 @@ Function Invoke-SecureFileTransfer{
       # Determine whether to put or get
       switch ($Direction) {
          "put" {
-            $transferResult = $session.PutFiles($Source, $Destination, $False, $transferOptions)
+            $transferResult = $session.PutFiles($Source, $Destination, $Removal, $transferOptions)
             break
          }
          "get" {
-            $transferResult = $session.GetFiles($Source, $Destination, $False, $transferOptions)
+            $transferResult = $session.GetFiles($Source, $Destination, $Removal, $transferOptions)
             break
          }
          default {
